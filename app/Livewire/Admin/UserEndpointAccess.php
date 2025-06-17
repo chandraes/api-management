@@ -11,15 +11,21 @@ class UserEndpointAccess extends Component
     public $selectedUserId;
     public $availableEndpoints = [];
     public $selectedEndpointIds = [];
+    public $search = '';
 
     public function mount()
     {
-         $this->availableEndpoints = ApiEndpoint::orderBy('uri')->get();
+         $this->loadEndpoints();
     }
 
-   public function updatedSelectedUserId($userId)
+    public function updatedSearch()
     {
-        $user = User::find($userId);
+        $this->loadEndpoints();
+    }
+
+    public function updatedSelectedUserId($userId)
+    {
+        $user = User::with('apiEndpoints')->find($userId);
         $this->selectedEndpointIds = $user?->apiEndpoints->pluck('id')->toArray() ?? [];
     }
 
@@ -35,6 +41,14 @@ class UserEndpointAccess extends Component
         $user->apiEndpoints()->sync($this->selectedEndpointIds);
 
         session()->flash('success', 'Hak akses endpoint berhasil disimpan.');
+    }
+
+    protected function loadEndpoints()
+    {
+        $this->availableEndpoints = ApiEndpoint::when($this->search, function ($query) {
+            $query->where('uri', 'like', "%{$this->search}%")
+                  ->orWhere('method', 'like', "%{$this->search}%");
+        })->orderBy('uri')->get();
     }
 
     public function render()

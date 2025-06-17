@@ -1,42 +1,62 @@
 <div>
     <section class="mt-5">
         <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
-            <div class="space-y-4">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-4">Kelola Akses Endpoint User</h2>
 
-                <div class="flex flex-col space-y-2">
-                    <label for="user">Pilih User:</label>
-                    <select wire:model="selectedUserId" class="rounded border-gray-300">
+                {{-- Flash Message --}}
+                @if (session()->has('success'))
+                <div class="bg-green-100 text-green-700 p-2 rounded mb-4">
+                    {{ session('success') }}
+                </div>
+                @elseif (session()->has('error'))
+                <div class="bg-red-100 text-red-700 p-2 rounded mb-4">
+                    {{ session('error') }}
+                </div>
+                @endif
+
+                {{-- Pilih User --}}
+                <div class="mb-4">
+                    <label for="user" class="block font-medium mb-1">Pilih User:</label>
+                    <select wire:model.live="selectedUserId" id="user" class="w-full border rounded p-2">
                         <option value="">-- Pilih User --</option>
-                        @foreach($users as $user)
+                        @foreach ($users as $user)
                         <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
                         @endforeach
                     </select>
                 </div>
 
-                @if($selectedUserId)
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 border p-4 rounded-md shadow-sm">
-                    @foreach($availableEndpoints as $endpoint)
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" wire:model="selectedEndpointIds" value="{{ $endpoint->id }}">
-                        <span class="text-sm font-mono">
-                            [{{ $endpoint->method }}] {{ $endpoint->uri }}
-                        </span>
-                    </label>
-                    @endforeach
+                {{-- Search Endpoint --}}
+                @if ($selectedUserId)
+                <div class="mb-4">
+                    <input type="text" wire:model.debounce.300ms="search"
+                        placeholder="Cari endpoint (uri atau method)..." class="w-full border px-3 py-2 rounded" />
                 </div>
 
-                <div class="mt-4">
-                    <button wire:click="save" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                        Simpan Akses
-                    </button>
+                {{-- List Endpoint --}}
+                <div class="mb-4">
+                    <label class="block font-medium mb-1">Pilih Endpoint yang Diizinkan:</label>
+                    <div class="border rounded p-2 max-h-80 overflow-y-auto space-y-2 bg-white shadow-inner">
+                        @forelse ($availableEndpoints as $endpoint)
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" wire:model="selectedEndpointIds" value="{{ $endpoint->id }}"
+                                id="endpoint_{{ $endpoint->id }}" class="form-checkbox text-blue-600">
+                            <label for="endpoint_{{ $endpoint->id }}" class="cursor-pointer text-sm">
+                                <span class="font-mono text-gray-700">[{{ strtoupper($endpoint->method) }}]</span>
+                                <span class="ml-1">{{ $endpoint->uri }}</span>
+                            </label>
+                        </div>
+                        @empty
+                        <p class="text-gray-500 text-sm">Tidak ada endpoint ditemukan.</p>
+                        @endforelse
+                    </div>
                 </div>
-                @endif
 
-                @if (session()->has('success'))
-                <div class="text-green-600">{{ session('success') }}</div>
-                @endif
-                @if (session()->has('error'))
-                <div class="text-red-600">{{ session('error') }}</div>
+                {{-- Tombol Simpan --}}
+                <button wire:click="save"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition duration-150">
+                    Simpan Akses
+                </button>
                 @endif
             </div>
         </div>
