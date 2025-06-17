@@ -18,7 +18,7 @@
                 @if (auth()->user()->role === 'admin')
                 <flux:navlist.group :heading="__('Master Data')" class="grid mt-5">
                     <flux:navlist.item icon="users" :href="route('users')" :current="request()->routeIs('users') || request()->routeIs('users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
-                    <flux:navlist.item icon="users" :href="route('admin.endpoint-access')" :current="request()->routeIs('admin.endpoint-access') || request()->routeIs('admin.endpoint-access.*')" wire:navigate>{{ __('User Endpoint') }}</flux:navlist.item>
+                    <flux:navlist.item icon="paper-airplane" :href="route('admin.endpoint-access')" :current="request()->routeIs('admin.endpoint-access') || request()->routeIs('admin.endpoint-access.*')" wire:navigate>{{ __('User Endpoint') }}</flux:navlist.item>
                 </flux:navlist.group>
                 {{-- <flux:navlist.group :heading="__('Feeder Data')" class="grid mt-5">
                     <flux:navlist.item icon="cloud-arrow-down" :href="route('feeder.sinkronisasi')" :current="request()->routeIs('feeder.sinkronisasi') || request()->routeIs('feeder.sinkronisasi.*')" wire:navigate>{{ __('Sinkronisasi') }}</flux:navlist.item>
