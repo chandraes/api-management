@@ -18,14 +18,17 @@ class MahasiswaController extends Controller
 
         // Ambil data mahasiswa dari database
         $mahasiswa = DB::connection('pdunsri')->table('list_riwayat_pendidikan_mahasiswa as riwayat')
-            ->leftJoin('program_studi as prodi', 'riwayat.id_prodi', '=', 'prodi.id_prodi')
-            ->where('riwayat.nim', $nim)
-            ->select(
+                ->leftJoin('program_studi as prodi', 'riwayat.id_prodi', '=', 'prodi.id_prodi')
+                ->where('riwayat.nim', $nim)
+                ->select(
                 'riwayat.nim as nim',
                 'riwayat.nama_mahasiswa as nama_mahasiswa',
                 'prodi.nama_program_studi as nama_program_studi',
                 'prodi.nama_jenjang_pendidikan as nama_jenjang_pendidikan',
-            )
+                DB::raw('LEFT(riwayat.id_periode_masuk, 4) as angkatan'),
+                DB::raw("COALESCE(riwayat.keterangan_keluar, 'Aktif') as status_mahasiswa")
+                )
+            ->orderBy('riwayat.id_periode_masuk', 'desc')
             ->first();
 
         if (!$mahasiswa) {
