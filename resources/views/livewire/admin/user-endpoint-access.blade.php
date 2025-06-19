@@ -29,7 +29,7 @@
                 {{-- Search Endpoint --}}
                 @if ($selectedUserId)
                 <div class="mb-4">
-                    <input type="text" wire:model.debounce.300ms="search"
+                    <input type="text" wire:model.live.debounce.300ms="search"
                         placeholder="Cari endpoint (uri atau method)..." class="w-full border px-3 py-2 rounded" />
                 </div>
 
@@ -43,7 +43,7 @@
                                 id="endpoint_{{ $endpoint->id }}" class="form-checkbox text-blue-600">
                             <label for="endpoint_{{ $endpoint->id }}" class="cursor-pointer text-sm">
                                 <span class="font-mono text-gray-700">[{{ strtoupper($endpoint->method) }}]</span>
-                                <span class="ml-1">{{ $endpoint->uri }}</span>
+                                <span class="ml-1 text-gray-700"">{{ $endpoint->uri }}</span>
                             </label>
                         </div>
                         @empty
