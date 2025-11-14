@@ -50,4 +50,77 @@ class ReferensiController extends Controller
             'data' => $prodi
         ]);
     }
+
+    public function get_prodi(Request $request)
+    {
+        // ✅ Ambil seluruh data program studi dari koneksi `pdunsri`
+        $prodi = DB::connection('pdunsri')
+            ->table('program_studi')
+            ->select(
+                'id_prodi',
+                // 'kode_program_studi',
+                // 'id_jenjang_pendidikan',
+                'nama_jenjang_pendidikan',
+                'nama_program_studi',
+                // 'status'
+            )
+            ->orderBy('nama_jenjang_pendidikan', 'asc')
+            ->orderBy('nama_program_studi', 'asc')
+            ->get();
+
+        // ✅ Jika tidak ditemukan
+        if ($prodi->isEmpty()) {
+            return response()->json([
+                'message' => 'Program studi tidak ditemukan.',
+                'totalData' => 0,
+                'totalRow'  => 0,
+                'data'      => []
+            ], 404);
+        }
+
+        // ✅ Hitung jumlah kolom dari record pertama
+        $totalRow = count((array)$prodi->first());
+
+        // ✅ Jika ditemukan
+        return response()->json([
+            'totalData' => $prodi->count(), // jumlah baris data
+            'totalRow'  => $totalRow,       // jumlah kolom (field)
+            'data'      => $prodi
+        ], 200);
+    }
+
+
+
+
+    public function informasi_prodi($id_prodi)
+{
+    $prodi = DB::connection('pdunsri')
+        ->table('program_studi')
+        ->where('id_prodi', $id_prodi)
+        ->select(
+            'id_prodi',
+            'kode_program_studi',
+            'id_jenjang_pendidikan',
+            'nama_jenjang_pendidikan',
+            'nama_program_studi',
+            'status'
+        )
+        ->first();
+
+    if (!$prodi) {
+        return response()->json([
+            'message' => 'Program studi tidak ditemukan.',
+            'id_prodi' => $id_prodi
+        ], 404);
+    }
+
+    return response()->json([
+        'message' => 'Data program studi berhasil diambil.',
+        'data' => $prodi
+    ], 200);
+}
+
+    
+
+    
 }
