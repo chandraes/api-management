@@ -12,14 +12,6 @@ class Mahasiswa extends Model
     public $incrementing = false;
     public $timestamps = false;
 
-    protected $fillable = [
-        'id_registrasi_mahasiswa',
-        'nim',
-        'nama_mahasiswa',
-        'id_prodi',
-        'id_periode_masuk',
-    ];
-
     // Relasi ke Program Studi
     public function prodi()
     {
