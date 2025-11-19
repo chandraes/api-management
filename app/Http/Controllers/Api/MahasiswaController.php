@@ -50,12 +50,13 @@ class MahasiswaController extends Controller
         $validated = $request->validate([
             'id_prodi'        => 'required|string',
             'angkatan'        => 'required|string',
-            'nama_mahasiswa'  => 'nullable|string',
+            'nama_mahasiswa'  => 'required|string',
             // 'status_aktif'    => 'nullable|string',
         ]);
 
         $query = Mahasiswa::where('id_prodi', $validated['id_prodi'])
-            ->whereRaw('LEFT(id_periode_masuk, 4) = ?', $validated['angkatan']);
+            ->whereRaw('LEFT(id_periode_masuk, 4) = ?', $validated['angkatan'])
+            ->where('nama_mahasiswa', $validated['nama_mahasiswa']);
         // with([
         //     // 'prodi:id_prodi,nama_program_studi,nama_jenjang_pendidikan',
         //     'lulusDo:id_registrasi_mahasiswa,nama_jenis_keluar,tanggal_keluar,no_seri_ijazah',
@@ -63,9 +64,9 @@ class MahasiswaController extends Controller
         // ])
         //     ->
             
-        if (!empty($validated['nama_mahasiswa'])) {
-            $query->where('nama_mahasiswa', 'like', "%{$validated['nama_mahasiswa']}%");
-        }
+        // if (!empty($validated['nama_mahasiswa'])) {
+        //     $query->where('nama_mahasiswa', 'like', "%{$validated['nama_mahasiswa']}%");
+        // }
 
         // if (!empty($validated['status_aktif'])) {
         //     if (strtolower($validated['status_aktif']) === 'aktif') {
@@ -88,7 +89,7 @@ class MahasiswaController extends Controller
                 'angkatan' => substr($mhs->id_periode_masuk, 0, 4),
                 'id_prodi' => $mhs->id_prodi,
                 'nama_program_studi' => $mhs->nama_program_studi,
-                'status_mahasiswa' => $mhs->lulusDo->nama_jenis_keluar ?? 'Aktif',
+                'status_mahasiswa' => $mhs->keterangan_keluar ?? 'Aktif',
                 // 'tanggal_keluar' => $mhs->lulusDo->tanggal_keluar ?? '-',
                 // 'no_seri_ijazah' => $mhs->lulusDo->no_seri_ijazah ?? '-',
                 // 'akm' => $mhs->akm->map(function ($a) {
@@ -133,9 +134,9 @@ class MahasiswaController extends Controller
         }
 
         // Lazy load relasi kecil (1 record)
-        $lulusDo = $mahasiswa->lulusDo()
-            ->select('id_registrasi_mahasiswa', 'nama_jenis_keluar', 'tanggal_keluar', 'no_seri_ijazah')
-            ->first();
+        // $lulusDo = $mahasiswa->lulusDo()
+        //     ->select('id_registrasi_mahasiswa', 'nama_jenis_keluar', 'tanggal_keluar', 'no_seri_ijazah')
+        //     ->first();
 
         // Lazy load relasi besar (dibatasi)
         // $akm = $mahasiswa->akm()
@@ -150,17 +151,14 @@ class MahasiswaController extends Controller
             'nim' => $mahasiswa->nim,
             'nama_mahasiswa' => $mahasiswa->nama_mahasiswa,
             'angkatan' => substr($mahasiswa->id_periode_masuk, 0, 4),
-            'id_prodi' => $mahasiswa->id_prodi,
-            'status_mahasiswa' => $lulusDo->nama_jenis_keluar ?? 'Aktif',
-            'tanggal_keluar' => $lulusDo->tanggal_keluar ?? '-',
-            'no_seri_ijazah' => $lulusDo->no_seri_ijazah ?? '-',
+            // 'status_mahasiswa' => $lulusDo->nama_jenis_keluar ?? 'Aktif',
+            // 'tanggal_keluar' => $lulusDo->tanggal_keluar ?? '-',
+            // 'no_seri_ijazah' => $lulusDo->no_seri_ijazah ?? '-',
 
             // ✅ Nested object "prodi"
             'prodi' => [
-                'id_prodi' => $mahasiswa->prodi->id_prodi ?? '-',
-                'nama_jenjang_pendidikan' => $mahasiswa->prodi->nama_jenjang_pendidikan ?? '-',
-                'nama_program_studi' => $mahasiswa->prodi->nama_program_studi ?? '-',
-                'status' => $mahasiswa->prodi->status ?? '-',
+                'id_prodi' => $mahasiswa->id_prodi,
+                'nama_program_studi' => $mahasiswa->nama_program_studi,
             ],
 
             // ✅ Nested list "akm"
