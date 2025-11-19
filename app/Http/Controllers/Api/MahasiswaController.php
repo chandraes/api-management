@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Mahasiswa;
+use App\Models\AktivitasKuliahMahasiswa;
 
 class MahasiswaController extends Controller
 {
@@ -121,12 +122,14 @@ class MahasiswaController extends Controller
 
         // Ambil data mahasiswa saja (tanpa eager load besar)
         $mahasiswa = Mahasiswa::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'id_prodi', 'id_periode_masuk')
-            ->with(['prodi:id_prodi,nama_program_studi,nama_jenjang_pendidikan,status'])
+            // ->with(['prodi:id_prodi,nama_program_studi,nama_jenjang_pendidikan,status'])
             ->where('id_registrasi_mahasiswa', $validated['id_registrasi_mahasiswa'])
             ->first();
 
         if (!$mahasiswa) {
-            return response()->json(['message' => 'Mahasiswa tidak ditemukan.'], 404);
+            return response()->json([
+                'message' => 'Mahasiswa tidak ditemukan. Periksa Kembali id_registrasi_mahasiswa yang Anda masukkan.'
+            ], 404);
         }
 
         // Lazy load relasi kecil (1 record)
@@ -135,11 +138,11 @@ class MahasiswaController extends Controller
             ->first();
 
         // Lazy load relasi besar (dibatasi)
-        $akm = $mahasiswa->akm()
-            ->select('id_registrasi_mahasiswa', 'id_semester', 'ips', 'ipk', 'sks_total', 'sks_semester', 'nama_status_mahasiswa')
-            ->orderByDesc('id_semester')
-            ->limit(20)
-            ->get();
+        // $akm = $mahasiswa->akm()
+        //     ->select('id_registrasi_mahasiswa', 'id_semester', 'ips', 'ipk', 'sks_total', 'sks_semester', 'nama_status_mahasiswa')
+        //     ->orderByDesc('id_semester')
+        //     ->limit(20)
+        //     ->get();
 
         // Susun hasil JSON rapi
         $result = [
@@ -161,22 +164,48 @@ class MahasiswaController extends Controller
             ],
 
             // ✅ Nested list "akm"
-            'akm' => $akm->map(function ($a) {
-                return [
-                    'id_semester' => $a->id_semester,
-                    'ips' => $a->ips,
-                    'ipk' => $a->ipk,
-                    'sks_total' => $a->sks_total,
-                    'sks_semester' => $a->sks_semester,
-                    'nama_status_mahasiswa' => $a->nama_status_mahasiswa,
-                ];
-            }),
+            // 'akm' => $akm->map(function ($a) {
+            //     return [
+            //         'id_semester' => $a->id_semester,
+            //         'ips' => $a->ips,
+            //         'ipk' => $a->ipk,
+            //         'sks_total' => $a->sks_total,
+            //         'sks_semester' => $a->sks_semester,
+            //         'nama_status_mahasiswa' => $a->nama_status_mahasiswa,
+            //     ];
+            // }),
         ];
 
 
         return response()->json([
             'message' => 'Data mahasiswa berhasil diambil.',
             'data' => $result
+        ], 200);
+    }
+
+
+    public function akm_by_id_reg(Request $request)
+    {
+        $validated = $request->validate([
+            'id_registrasi_mahasiswa' => 'required|string',
+        ]);
+
+        // Ambil data mahasiswa saja (tanpa eager load besar)
+        $akm = AktivitasKuliahMahasiswa::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'id_semester', 'sks_semester', 'ips', 'ipk')
+            // ->with(['prodi:id_prodi,nama_program_studi,nama_jenjang_pendidikan,status'])
+            ->where('id_registrasi_mahasiswa', $validated['id_registrasi_mahasiswa'])
+            ->orderBy('id_semester', 'ASC')
+            ->get();
+
+        if (!$akm) {
+            return response()->json([
+                'message' => 'Mahasiswa tidak ditemukan. Periksa Kembali id_registrasi_mahasiswa yang Anda masukkan.'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data AKM mahasiswa berhasil diambil.',
+            'data' => $akm
         ], 200);
     }
 
