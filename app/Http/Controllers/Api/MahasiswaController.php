@@ -56,7 +56,7 @@ class MahasiswaController extends Controller
 
         $query = Mahasiswa::where('id_prodi', $validated['id_prodi'])
             ->whereRaw('LEFT(id_periode_masuk, 4) = ?', $validated['angkatan'])
-            ->where('nama_mahasiswa', $validated['nama_mahasiswa']);
+            ->where('nama_mahasiswa', 'like', "%{$validated['nama_mahasiswa']}%");
         // with([
         //     // 'prodi:id_prodi,nama_program_studi,nama_jenjang_pendidikan',
         //     'lulusDo:id_registrasi_mahasiswa,nama_jenis_keluar,tanggal_keluar,no_seri_ijazah',
