@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Mahasiswa;
 use App\Models\AktivitasKuliahMahasiswa;
+use App\Models\LulusDO;
 
 class MahasiswaController extends Controller
 {
@@ -204,6 +205,47 @@ class MahasiswaController extends Controller
         return response()->json([
             'message' => 'Data AKM mahasiswa berhasil diambil.',
             'data' => $akm
+        ], 200);
+    }
+
+    public function mahasiswa_lulus_do(Request $request)
+    {
+        $validated = $request->validate([
+            'id_registrasi_mahasiswa' => 'required|string',
+        ]);
+
+        // Ambil data mahasiswa saja (tanpa eager load besar)
+        $lulusDo = LulusDO::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'id_prodi', 'angkatan', 
+                                    'nama_jenis_keluar', 'tanggal_keluar', 'no_seri_ijazah', 'id_prodi', 'nama_program_studi')
+            ->where('id_registrasi_mahasiswa', $validated['id_registrasi_mahasiswa'])
+            ->first();
+
+        if (!$lulusDo) {
+            return response()->json([
+                'message' => 'Data mahasiswa tidak ditemukan. Pastikan mahasiswa bukan berstatus Aktif dan periksa kembali id_registrasi_mahasiswa yang Anda masukkan.'
+            ], 404);
+        }
+
+        // Susun hasil JSON rapi
+        $result = [
+            'id_registrasi_mahasiswa' => $lulusDo->id_registrasi_mahasiswa,
+            'nim' => $lulusDo->nim,
+            'nama_mahasiswa' => $lulusDo->nama_mahasiswa,
+            'angkatan' => $lulusDo->angkatan,
+            'status_mahasiswa' => $lulusDo->nama_jenis_keluar,
+            'tanggal_keluar' => $lulusDo->tanggal_keluar ?? '-',
+            'no_seri_ijazah' => $lulusDo->no_seri_ijazah ?? '-',
+
+            // ✅ Nested object "prodi"
+            'prodi' => [
+                'id_prodi' => $lulusDo->id_prodi,
+                'nama_program_studi' => $lulusDo->nama_program_studi,
+            ],
+        ];
+
+        return response()->json([
+            'message' => 'Data mahasiswa berhasil diambil.',
+            'data' => $result
         ], 200);
     }
 

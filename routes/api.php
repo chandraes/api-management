@@ -17,6 +17,8 @@ Route::middleware(['auth:sanctum', 'check.api.access'])->group(function () {
         Route::get('mahasiswa-by-id-reg', [App\Http\Controllers\Api\MahasiswaController::class, 'mahasiswa_by_id_reg'])->name('api.mahasiswa-by-id-reg');
         // ✅ GET AKM mahasiswa by id_reg
         Route::get('akm-by-id-reg', [App\Http\Controllers\Api\MahasiswaController::class, 'akm_by_id_reg'])->name('api.akm-by-id-reg');
+        // ✅ GET mahasiswa Lulus DO by id_reg
+        Route::get('lulus-do-by-id-reg', [App\Http\Controllers\Api\MahasiswaController::class, 'mahasiswa_lulus_do'])->name('api.lulus-do-by-id-reg');
         
         
         Route::prefix('feeder')->group(function () {
