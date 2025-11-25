@@ -37,6 +37,7 @@ class MahasiswaController extends Controller
 
         if (!$mahasiswa) {
             return response()->json([
+                'status' => 404,
                 'message' => 'Mahasiswa tidak ditemukan. Periksa Kembali NIM yang Anda masukkan.',
             ], 404);
         }
@@ -107,7 +108,10 @@ class MahasiswaController extends Controller
         });
 
         if ($result->isEmpty()) {
-            return response()->json(['message' => 'Tidak ada data mahasiswa sesuai filter yang diberikan.'], 404);
+            return response()->json([
+                'status' => 404,
+                'message' => 'Tidak ada data mahasiswa sesuai filter yang diberikan.'
+            ], 404);
         }
 
         return response()->json([
@@ -130,6 +134,7 @@ class MahasiswaController extends Controller
 
         if (!$mahasiswa) {
             return response()->json([
+                'status' => 404,
                 'message' => 'Mahasiswa tidak ditemukan. Periksa Kembali id_registrasi_mahasiswa yang Anda masukkan.'
             ], 404);
         }
@@ -183,22 +188,23 @@ class MahasiswaController extends Controller
     }
 
 
-    public function akm_by_id_reg(Request $request)
+    public function akm_by_nim(Request $request)
     {
         $validated = $request->validate([
-            'id_registrasi_mahasiswa' => 'required|string',
+            'nim' => 'required|string',
         ]);
 
         // Ambil data mahasiswa saja (tanpa eager load besar)
         $akm = AktivitasKuliahMahasiswa::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'id_semester', 'sks_semester', 'ips', 'ipk')
             // ->with(['prodi:id_prodi,nama_program_studi,nama_jenjang_pendidikan,status'])
-            ->where('id_registrasi_mahasiswa', $validated['id_registrasi_mahasiswa'])
+            ->where('nim', $validated['nim'])
             ->orderBy('id_semester', 'ASC')
             ->get();
 
         if (!$akm) {
             return response()->json([
-                'message' => 'Mahasiswa tidak ditemukan. Periksa Kembali id_registrasi_mahasiswa yang Anda masukkan.'
+                'status' => 404,
+                'message' => 'Data AKM tidak ditemukan. Periksa Kembali NIM yang Anda masukkan.'
             ], 404);
         }
 
@@ -211,18 +217,19 @@ class MahasiswaController extends Controller
     public function mahasiswa_lulus_do(Request $request)
     {
         $validated = $request->validate([
-            'id_registrasi_mahasiswa' => 'required|string',
+            'nim' => 'required|string',
         ]);
 
         // Ambil data mahasiswa saja (tanpa eager load besar)
         $lulusDo = LulusDO::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'id_prodi', 'angkatan', 
                                     'nama_jenis_keluar', 'tanggal_keluar', 'no_seri_ijazah', 'id_prodi', 'nama_program_studi')
-            ->where('id_registrasi_mahasiswa', $validated['id_registrasi_mahasiswa'])
-            ->first();
+                ->where('nim', $validated['nim'])
+                ->first();
 
         if (!$lulusDo) {
             return response()->json([
-                'message' => 'Data mahasiswa tidak ditemukan. Pastikan mahasiswa bukan berstatus Aktif dan periksa kembali id_registrasi_mahasiswa yang Anda masukkan.'
+                'status' => 404,
+                'message' => 'Data mahasiswa tidak ditemukan. Pastikan mahasiswa bukan berstatus Aktif dan periksa kembali NIM yang Anda masukkan.'
             ], 404);
         }
 
