@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Mahasiswa;
 use App\Models\AktivitasKuliahMahasiswa;
+use App\Models\LulusDO;
 
 class MahasiswaController extends Controller
 {
@@ -36,6 +37,7 @@ class MahasiswaController extends Controller
 
         if (!$mahasiswa) {
             return response()->json([
+                'status' => 404,
                 'message' => 'Mahasiswa tidak ditemukan. Periksa Kembali NIM yang Anda masukkan.',
             ], 404);
         }
@@ -106,7 +108,10 @@ class MahasiswaController extends Controller
         });
 
         if ($result->isEmpty()) {
-            return response()->json(['message' => 'Tidak ada data mahasiswa sesuai filter yang diberikan.'], 404);
+            return response()->json([
+                'status' => 404,
+                'message' => 'Tidak ada data mahasiswa sesuai filter yang diberikan.'
+            ], 404);
         }
 
         return response()->json([
@@ -129,6 +134,7 @@ class MahasiswaController extends Controller
 
         if (!$mahasiswa) {
             return response()->json([
+                'status' => 404,
                 'message' => 'Mahasiswa tidak ditemukan. Periksa Kembali id_registrasi_mahasiswa yang Anda masukkan.'
             ], 404);
         }
@@ -182,28 +188,71 @@ class MahasiswaController extends Controller
     }
 
 
-    public function akm_by_id_reg(Request $request)
+    public function akm_by_nim(Request $request)
     {
         $validated = $request->validate([
-            'id_registrasi_mahasiswa' => 'required|string',
+            'nim' => 'required|string',
         ]);
 
         // Ambil data mahasiswa saja (tanpa eager load besar)
         $akm = AktivitasKuliahMahasiswa::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'id_semester', 'sks_semester', 'ips', 'ipk')
             // ->with(['prodi:id_prodi,nama_program_studi,nama_jenjang_pendidikan,status'])
-            ->where('id_registrasi_mahasiswa', $validated['id_registrasi_mahasiswa'])
+            ->where('nim', $validated['nim'])
             ->orderBy('id_semester', 'ASC')
             ->get();
 
         if (!$akm) {
             return response()->json([
-                'message' => 'Mahasiswa tidak ditemukan. Periksa Kembali id_registrasi_mahasiswa yang Anda masukkan.'
+                'status' => 404,
+                'message' => 'Data AKM tidak ditemukan. Periksa Kembali NIM yang Anda masukkan.'
             ], 404);
         }
 
         return response()->json([
             'message' => 'Data AKM mahasiswa berhasil diambil.',
             'data' => $akm
+        ], 200);
+    }
+
+    public function mahasiswa_lulus_do(Request $request)
+    {
+        $validated = $request->validate([
+            'nim' => 'required|string',
+        ]);
+
+        // Ambil data mahasiswa saja (tanpa eager load besar)
+        $lulusDo = LulusDO::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'id_prodi', 'angkatan', 
+                                    'nama_jenis_keluar', 'tanggal_keluar', 'no_seri_ijazah', 'id_prodi', 'nama_program_studi')
+                ->where('nim', $validated['nim'])
+                ->first();
+
+        if (!$lulusDo) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Data mahasiswa tidak ditemukan. Pastikan mahasiswa bukan berstatus Aktif dan periksa kembali NIM yang Anda masukkan.'
+            ], 404);
+        }
+
+        // Susun hasil JSON rapi
+        $result = [
+            'id_registrasi_mahasiswa' => $lulusDo->id_registrasi_mahasiswa,
+            'nim' => $lulusDo->nim,
+            'nama_mahasiswa' => $lulusDo->nama_mahasiswa,
+            'angkatan' => $lulusDo->angkatan,
+            'status_mahasiswa' => $lulusDo->nama_jenis_keluar,
+            'tanggal_keluar' => $lulusDo->tanggal_keluar ?? '-',
+            'no_seri_ijazah' => $lulusDo->no_seri_ijazah ?? '-',
+
+            // ✅ Nested object "prodi"
+            'prodi' => [
+                'id_prodi' => $lulusDo->id_prodi,
+                'nama_program_studi' => $lulusDo->nama_program_studi,
+            ],
+        ];
+
+        return response()->json([
+            'message' => 'Data mahasiswa berhasil diambil.',
+            'data' => $result
         ], 200);
     }
 
