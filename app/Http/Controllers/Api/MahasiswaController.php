@@ -32,8 +32,8 @@ class MahasiswaController extends Controller
                 DB::raw('LEFT(riwayat.id_periode_masuk, 4) as angkatan'),
                 DB::raw("COALESCE(riwayat.keterangan_keluar, 'Aktif') as status_mahasiswa")
                 )
-            ->orderBy('riwayat.id_periode_masuk', 'desc')
-            ->first();
+                ->orderBy('riwayat.id_periode_masuk', 'desc')
+                ->first();
 
         if (!$mahasiswa) {
             return response()->json([
@@ -214,7 +214,7 @@ class MahasiswaController extends Controller
         ], 200);
     }
 
-    public function mahasiswa_lulus_do(Request $request)
+    public function lulus_do_nim(Request $request)
     {
         $validated = $request->validate([
             'nim' => 'required|string',
