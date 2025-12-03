@@ -13,12 +13,12 @@ Route::middleware(['auth:sanctum', 'check.api.access'])->group(function () {
         
         // ✅ GET semua mahasiswa
         Route::get('mahasiswa-by-id-prodi', [App\Http\Controllers\Api\MahasiswaController::class, 'all_mahasiswa'])->name('api.mahasiswa-by-prodi');
-        // ✅ GET mahasiswa by id_reg
-        Route::get('mahasiswa-by-id-reg', [App\Http\Controllers\Api\MahasiswaController::class, 'mahasiswa_by_id_reg'])->name('api.mahasiswa-by-id-reg');
-        // ✅ GET AKM mahasiswa by id_reg
-        Route::get('akm-by-id-reg', [App\Http\Controllers\Api\MahasiswaController::class, 'akm_by_id_reg'])->name('api.akm-by-id-reg');
+        // // ✅ GET mahasiswa by id_reg
+        // Route::get('mahasiswa-by-id-reg', [App\Http\Controllers\Api\MahasiswaController::class, 'mahasiswa_by_id_reg'])->name('api.mahasiswa-by-id-reg');
+        // // ✅ GET AKM mahasiswa by id_reg
+        Route::get('akm-by-nim', [App\Http\Controllers\Api\MahasiswaController::class, 'akm_by_nim'])->name('api.akm-by-nim');
         // ✅ GET mahasiswa Lulus DO by id_reg
-        Route::get('lulus-do-by-id-reg', [App\Http\Controllers\Api\MahasiswaController::class, 'mahasiswa_lulus_do'])->name('api.lulus-do-by-id-reg');
+        Route::get('lulus-do-by-nim', [App\Http\Controllers\Api\MahasiswaController::class, 'lulus_do_nim'])->name('api.lulus-do-by-nim');
         
         
         Route::prefix('feeder')->group(function () {
