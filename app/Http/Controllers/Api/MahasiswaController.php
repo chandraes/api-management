@@ -59,26 +59,6 @@ class MahasiswaController extends Controller
         $query = Mahasiswa::where('id_prodi', $validated['id_prodi'])
             ->whereRaw('LEFT(id_periode_masuk, 4) = ?', $validated['angkatan'])
             ->where('nama_mahasiswa', 'like', "%{$validated['nama_mahasiswa']}%");
-        // with([
-        //     // 'prodi:id_prodi,nama_program_studi,nama_jenjang_pendidikan',
-        //     'lulusDo:id_registrasi_mahasiswa,nama_jenis_keluar,tanggal_keluar,no_seri_ijazah',
-        //     // 'akm:id_registrasi_mahasiswa,id_semester,ips,ipk,sks_total,sks_semester,nama_status_mahasiswa'
-        // ])
-        //     ->
-            
-        // if (!empty($validated['nama_mahasiswa'])) {
-        //     $query->where('nama_mahasiswa', 'like', "%{$validated['nama_mahasiswa']}%");
-        // }
-
-        // if (!empty($validated['status_aktif'])) {
-        //     if (strtolower($validated['status_aktif']) === 'aktif') {
-        //         $query->whereDoesntHave('lulusDo');
-        //     } else {
-        //         $query->whereHas('lulusDo', function ($q) use ($validated) {
-        //             $q->where('nama_jenis_keluar', 'like', "%{$validated['status_aktif']}%");
-        //         });
-        //     }
-        // }
 
         $mahasiswa = $query->orderBy('id_periode_masuk', 'desc')->get();
 
@@ -92,18 +72,6 @@ class MahasiswaController extends Controller
                 'id_prodi' => $mhs->id_prodi,
                 'nama_program_studi' => $mhs->nama_program_studi,
                 'status_mahasiswa' => $mhs->keterangan_keluar ?? 'Aktif',
-                // 'tanggal_keluar' => $mhs->lulusDo->tanggal_keluar ?? '-',
-                // 'no_seri_ijazah' => $mhs->lulusDo->no_seri_ijazah ?? '-',
-                // 'akm' => $mhs->akm->map(function ($a) {
-                //     return [
-                //         'id_semester' => $a->id_semester,
-                //         'ips' => $a->ips,
-                //         'ipk' => $a->ipk,
-                //         'sks_total' => $a->sks_total,
-                //         'sks_semester' => $a->sks_semester,
-                //         'nama_status_mahasiswa' => $a->nama_status_mahasiswa,
-                //     ];
-                // }),
             ];
         });
 
@@ -139,18 +107,6 @@ class MahasiswaController extends Controller
             ], 404);
         }
 
-        // Lazy load relasi kecil (1 record)
-        // $lulusDo = $mahasiswa->lulusDo()
-        //     ->select('id_registrasi_mahasiswa', 'nama_jenis_keluar', 'tanggal_keluar', 'no_seri_ijazah')
-        //     ->first();
-
-        // Lazy load relasi besar (dibatasi)
-        // $akm = $mahasiswa->akm()
-        //     ->select('id_registrasi_mahasiswa', 'id_semester', 'ips', 'ipk', 'sks_total', 'sks_semester', 'nama_status_mahasiswa')
-        //     ->orderByDesc('id_semester')
-        //     ->limit(20)
-        //     ->get();
-
         // Susun hasil JSON rapi
         $result = [
             'id_registrasi_mahasiswa' => $mahasiswa->id_registrasi_mahasiswa,
@@ -166,18 +122,6 @@ class MahasiswaController extends Controller
                 'id_prodi' => $mahasiswa->id_prodi,
                 'nama_program_studi' => $mahasiswa->nama_program_studi,
             ],
-
-            // ✅ Nested list "akm"
-            // 'akm' => $akm->map(function ($a) {
-            //     return [
-            //         'id_semester' => $a->id_semester,
-            //         'ips' => $a->ips,
-            //         'ipk' => $a->ipk,
-            //         'sks_total' => $a->sks_total,
-            //         'sks_semester' => $a->sks_semester,
-            //         'nama_status_mahasiswa' => $a->nama_status_mahasiswa,
-            //     ];
-            // }),
         ];
 
 
@@ -220,10 +164,21 @@ class MahasiswaController extends Controller
             'nim' => 'required|string',
         ]);
 
-        // Ambil data mahasiswa saja (tanpa eager load besar)
-        $lulusDo = LulusDO::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'angkatan', 
-                                    'nama_jenis_keluar', 'tanggal_keluar', 'no_seri_ijazah', 'id_prodi', 'nama_program_studi')
-                ->where('nim', $validated['nim'])
+        $nim = $validated['nim'];
+
+        $lulusDo = DB::connection('pdunsri')->table('list_mahasiswa_lulus_do as lulus_do')
+                // ->leftJoin('program_studi as prodi', 'riwayat.id_prodi', '=', 'prodi.id_prodi')
+                ->where('lulus_do.nim', $nim)
+                ->select(
+                'lulus_do.nim as nim',
+                'lulus_do.nama_mahasiswa as nama_mahasiswa',
+                'lulus_do.id_prodi as id_prodi',
+                'lulus_do.nama_program_studi as nama_program_studi',
+                'lulus_do.id_prodi as angkatan',
+                'lulus_do.nama_jenis_keluar as status_mahasiswa',
+                'lulus_do.tanggal_keluar',
+                'lulus_do.no_seri_ijazah'
+                )
                 ->first();
 
         if (!$lulusDo) {
@@ -232,23 +187,6 @@ class MahasiswaController extends Controller
                 'message' => 'Data mahasiswa tidak ditemukan. Pastikan mahasiswa bukan berstatus Aktif dan periksa kembali NIM yang Anda masukkan.'
             ], 404);
         }
-
-        // Susun hasil JSON rapi
-        // $result = [
-        //     'id_registrasi_mahasiswa' => $lulusDo->id_registrasi_mahasiswa,
-        //     'nim' => $lulusDo->nim,
-        //     'nama_mahasiswa' => $lulusDo->nama_mahasiswa,
-        //     'angkatan' => $lulusDo->angkatan,
-        //     'status_mahasiswa' => $lulusDo->nama_jenis_keluar,
-        //     'tanggal_keluar' => $lulusDo->tanggal_keluar ?? '-',
-        //     'no_seri_ijazah' => $lulusDo->no_seri_ijazah ?? '-',
-
-        //     // ✅ Nested object "prodi"
-        //     // 'prodi' => [
-        //         'id_prodi' => $lulusDo->id_prodi,
-        //         'nama_program_studi' => $lulusDo->nama_program_studi,
-        //     // ],
-        // ];
 
         return response()->json([
             'message' => 'Data mahasiswa berhasil diambil.',
