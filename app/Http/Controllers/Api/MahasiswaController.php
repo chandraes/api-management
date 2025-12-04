@@ -166,32 +166,42 @@ class MahasiswaController extends Controller
 
         $nim = $validated['nim'];
 
-        $lulusDo = DB::connection('pdunsri')->table('list_mahasiswa_lulus_do as lulus_do')
-                // ->leftJoin('program_studi as prodi', 'riwayat.id_prodi', '=', 'prodi.id_prodi')
+        try {
+            $lulusDo = DB::connection('pdunsri')
+                ->table('list_mahasiswa_lulus_do as lulus_do')
                 ->where('lulus_do.nim', $nim)
                 ->select(
-                'lulus_do.nim as nim',
-                'lulus_do.nama_mahasiswa as nama_mahasiswa',
-                'lulus_do.id_prodi as id_prodi',
-                'lulus_do.nama_program_studi as nama_program_studi',
-                'lulus_do.id_prodi as angkatan',
-                'lulus_do.nama_jenis_keluar as status_mahasiswa',
-                'lulus_do.tanggal_keluar',
-                'lulus_do.no_seri_ijazah'
+                    'lulus_do.nim as nim',
+                    'lulus_do.nama_mahasiswa as nama_mahasiswa',
+                    'lulus_do.id_prodi as id_prodi',
+                    'lulus_do.nama_program_studi as nama_program_studi',
+                    'lulus_do.id_prodi as angkatan',
+                    'lulus_do.nama_jenis_keluar as status_mahasiswa',
+                    'lulus_do.tanggal_keluar',
+                    'lulus_do.no_seri_ijazah'
                 )
                 ->first();
 
-        if (!$lulusDo) {
+            // Jika tidak ditemukan
+            if (!$lulusDo) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Data mahasiswa tidak ditemukan. Pastikan mahasiswa bukan berstatus Aktif dan periksa kembali NIM yang Anda masukkan.'
+                ], 404);
+            }
+
+            // Jika berhasil
             return response()->json([
-                'status' => 404,
-                'message' => 'Data mahasiswa tidak ditemukan. Pastikan mahasiswa bukan berstatus Aktif dan periksa kembali NIM yang Anda masukkan.'
-            ], 404);
+                'message' => 'Data mahasiswa berhasil diambil.',
+                'data' => $lulusDo
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Terjadi kesalahan saat mengambil data mahasiswa.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Data mahasiswa berhasil diambil.',
-            'data' => $lulusDo
-        ], 200);
     }
-
 }
