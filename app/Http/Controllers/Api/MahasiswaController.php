@@ -221,7 +221,7 @@ class MahasiswaController extends Controller
         ]);
 
         // Ambil data mahasiswa saja (tanpa eager load besar)
-        $lulusDo = LulusDO::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'id_prodi', 'angkatan', 
+        $lulusDo = LulusDO::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'angkatan', 
                                     'nama_jenis_keluar', 'tanggal_keluar', 'no_seri_ijazah', 'id_prodi', 'nama_program_studi')
                 ->where('nim', $validated['nim'])
                 ->first();
@@ -234,25 +234,25 @@ class MahasiswaController extends Controller
         }
 
         // Susun hasil JSON rapi
-        $result = [
-            'id_registrasi_mahasiswa' => $lulusDo->id_registrasi_mahasiswa,
-            'nim' => $lulusDo->nim,
-            'nama_mahasiswa' => $lulusDo->nama_mahasiswa,
-            'angkatan' => $lulusDo->angkatan,
-            'status_mahasiswa' => $lulusDo->nama_jenis_keluar,
-            'tanggal_keluar' => $lulusDo->tanggal_keluar ?? '-',
-            'no_seri_ijazah' => $lulusDo->no_seri_ijazah ?? '-',
+        // $result = [
+        //     'id_registrasi_mahasiswa' => $lulusDo->id_registrasi_mahasiswa,
+        //     'nim' => $lulusDo->nim,
+        //     'nama_mahasiswa' => $lulusDo->nama_mahasiswa,
+        //     'angkatan' => $lulusDo->angkatan,
+        //     'status_mahasiswa' => $lulusDo->nama_jenis_keluar,
+        //     'tanggal_keluar' => $lulusDo->tanggal_keluar ?? '-',
+        //     'no_seri_ijazah' => $lulusDo->no_seri_ijazah ?? '-',
 
-            // ✅ Nested object "prodi"
-            'prodi' => [
-                'id_prodi' => $lulusDo->id_prodi,
-                'nama_program_studi' => $lulusDo->nama_program_studi,
-            ],
-        ];
+        //     // ✅ Nested object "prodi"
+        //     // 'prodi' => [
+        //         'id_prodi' => $lulusDo->id_prodi,
+        //         'nama_program_studi' => $lulusDo->nama_program_studi,
+        //     // ],
+        // ];
 
         return response()->json([
             'message' => 'Data mahasiswa berhasil diambil.',
-            'data' => $result
+            'data' => $lulusDo
         ], 200);
     }
 
