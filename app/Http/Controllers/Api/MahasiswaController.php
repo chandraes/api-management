@@ -65,7 +65,7 @@ class MahasiswaController extends Controller
         //     // 'akm:id_registrasi_mahasiswa,id_semester,ips,ipk,sks_total,sks_semester,nama_status_mahasiswa'
         // ])
         //     ->
-            
+
         // if (!empty($validated['nama_mahasiswa'])) {
         //     $query->where('nama_mahasiswa', 'like', "%{$validated['nama_mahasiswa']}%");
         // }
@@ -219,41 +219,48 @@ class MahasiswaController extends Controller
         $validated = $request->validate([
             'nim' => 'required|string',
         ]);
+        try {
+             // Ambil data mahasiswa saja (tanpa eager load besar)
+            $lulusDo = LulusDO::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'angkatan',
+                                        'nama_jenis_keluar', 'tanggal_keluar', 'no_seri_ijazah', 'id_prodi', 'nama_program_studi')
+                    ->where('nim', $validated['nim'])
+                    ->first();
 
-        // Ambil data mahasiswa saja (tanpa eager load besar)
-        $lulusDo = LulusDO::select('id_registrasi_mahasiswa', 'nim', 'nama_mahasiswa', 'angkatan', 
-                                    'nama_jenis_keluar', 'tanggal_keluar', 'no_seri_ijazah', 'id_prodi', 'nama_program_studi')
-                ->where('nim', $validated['nim'])
-                ->first();
+            if (!$lulusDo) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Data mahasiswa tidak ditemukan. Pastikan mahasiswa bukan berstatus Aktif dan periksa kembali NIM yang Anda masukkan.'
+                ], 404);
+            }
 
-        if (!$lulusDo) {
+            // Susun hasil JSON rapi
+            // $result = [
+            //     'id_registrasi_mahasiswa' => $lulusDo->id_registrasi_mahasiswa,
+            //     'nim' => $lulusDo->nim,
+            //     'nama_mahasiswa' => $lulusDo->nama_mahasiswa,
+            //     'angkatan' => $lulusDo->angkatan,
+            //     'status_mahasiswa' => $lulusDo->nama_jenis_keluar,
+            //     'tanggal_keluar' => $lulusDo->tanggal_keluar ?? '-',
+            //     'no_seri_ijazah' => $lulusDo->no_seri_ijazah ?? '-',
+
+            //     // ✅ Nested object "prodi"
+            //     // 'prodi' => [
+            //         'id_prodi' => $lulusDo->id_prodi,
+            //         'nama_program_studi' => $lulusDo->nama_program_studi,
+            //     // ],
+            // ];
+
             return response()->json([
-                'status' => 404,
-                'message' => 'Data mahasiswa tidak ditemukan. Pastikan mahasiswa bukan berstatus Aktif dan periksa kembali NIM yang Anda masukkan.'
-            ], 404);
+                'message' => 'Data mahasiswa berhasil diambil.',
+                'data' => $lulusDo
+            ], 200);
+        } catch (\Throwable $th) {
+            //throw $th;
+            return response()->json([
+                'message' => $th->getMessage(),
+            ]);
         }
 
-        // Susun hasil JSON rapi
-        // $result = [
-        //     'id_registrasi_mahasiswa' => $lulusDo->id_registrasi_mahasiswa,
-        //     'nim' => $lulusDo->nim,
-        //     'nama_mahasiswa' => $lulusDo->nama_mahasiswa,
-        //     'angkatan' => $lulusDo->angkatan,
-        //     'status_mahasiswa' => $lulusDo->nama_jenis_keluar,
-        //     'tanggal_keluar' => $lulusDo->tanggal_keluar ?? '-',
-        //     'no_seri_ijazah' => $lulusDo->no_seri_ijazah ?? '-',
-
-        //     // ✅ Nested object "prodi"
-        //     // 'prodi' => [
-        //         'id_prodi' => $lulusDo->id_prodi,
-        //         'nama_program_studi' => $lulusDo->nama_program_studi,
-        //     // ],
-        // ];
-
-        return response()->json([
-            'message' => 'Data mahasiswa berhasil diambil.',
-            'data' => $lulusDo
-        ], 200);
     }
 
 }
