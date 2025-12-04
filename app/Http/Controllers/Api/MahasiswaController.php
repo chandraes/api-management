@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Mahasiswa;
 use App\Models\AktivitasKuliahMahasiswa;
-use App\Models\LulusDO;
+use App\Models\LulusDo;
 
 class MahasiswaController extends Controller
 {
@@ -167,23 +167,36 @@ class MahasiswaController extends Controller
         $nim = $validated['nim'];
 
         try {
-            $lulusDo = DB::connection('pdunsri')
-                ->table('list_mahasiswa_lulus_do as lulus_do')
-                ->where('lulus_do.nim', $nim)
+            // $lulusDO = DB::connection('pdunsri')
+            //     ->table('list_mahasiswa_lulus_do as lulus_do')
+            //     ->where('lulus_do.nim', $nim)
+            //     ->select(
+            //         'lulus_do.nim as nim',
+            //         'lulus_do.nama_mahasiswa as nama_mahasiswa',
+            //         'lulus_do.id_prodi as id_prodi',
+            //         'lulus_do.nama_program_studi as nama_program_studi',
+            //         'lulus_do.id_prodi as angkatan',
+            //         'lulus_do.nama_jenis_keluar as status_mahasiswa',
+            //         'lulus_do.tanggal_keluar',
+            //         'lulus_do.no_seri_ijazah'
+            //     )
+            //     ->first();
+
+            $lulusDO = LulusDo::where('nim', $nim)
                 ->select(
-                    'lulus_do.nim as nim',
-                    'lulus_do.nama_mahasiswa as nama_mahasiswa',
-                    'lulus_do.id_prodi as id_prodi',
-                    'lulus_do.nama_program_studi as nama_program_studi',
-                    'lulus_do.id_prodi as angkatan',
-                    'lulus_do.nama_jenis_keluar as status_mahasiswa',
-                    'lulus_do.tanggal_keluar',
-                    'lulus_do.no_seri_ijazah'
+                    'nim as nim',
+                    'nama_mahasiswa',
+                    'id_prodi as id_prodi',
+                    'nama_program_studi',
+                    'id_prodi as angkatan',
+                    'nama_jenis_keluar as status_mahasiswa',
+                    'tanggal_keluar',
+                    'no_seri_ijazah'
                 )
                 ->first();
 
             // Jika tidak ditemukan
-            if (!$lulusDo) {
+            if (!$lulusDO) {
                 return response()->json([
                     'status' => 404,
                     'message' => 'Data mahasiswa tidak ditemukan. Pastikan mahasiswa bukan berstatus Aktif dan periksa kembali NIM yang Anda masukkan.'
@@ -193,7 +206,7 @@ class MahasiswaController extends Controller
             // Jika berhasil
             return response()->json([
                 'message' => 'Data mahasiswa berhasil diambil.',
-                'data' => $lulusDo
+                'data' => $lulusDO
             ], 200);
 
         } catch (\Exception $e) {
