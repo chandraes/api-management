@@ -29,8 +29,8 @@ class MahasiswaController extends Controller
                 'riwayat.id_prodi as id_prodi',
                 'prodi.nama_program_studi as nama_program_studi',
                 'prodi.nama_jenjang_pendidikan as nama_jenjang_pendidikan',
-                DB::raw('LEFT(riwayat.id_periode_masuk, 4) as angkatan'),
-                DB::raw("COALESCE(riwayat.keterangan_keluar, 'Aktif') as status_mahasiswa")
+                DB::raw('LEFT(riwayat.id_periode_masuk, 4) as angkatan')
+                // DB::raw("COALESCE(riwayat.keterangan_keluar, 'Aktif') as status_mahasiswa")
                 )
                 ->orderBy('riwayat.id_periode_masuk', 'desc')
                 ->first();
